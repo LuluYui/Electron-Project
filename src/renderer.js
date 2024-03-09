@@ -28,4 +28,60 @@
 
 import './index.css';
 
-console.log('👋 This message is being logged by "renderer.js", included via webpack');
+async function fetchPdfFilesData() {
+    try {
+        const response = await fetch('http://localhost:443/get_pdf', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-SSL-CERT': 'ca.pem',
+            }
+        });
+        if (!response.ok) {
+            throw new Error('Failed to fetch data');
+        }
+        const pdfFiles = await response.json();
+        console.log(pdfFiles)
+        return pdfFiles;
+    } catch (error) {
+        console.error('Error fetching PDF files data:', error);
+        return [];
+    }
+}
+
+
+// Retrieve PDF files data from Flask app
+fetchPdfFilesData().then(pdfFiles => {
+    displayPdfFiles(pdfFiles);
+}).catch(error => {
+    console.error('Error fetching PDF files data:', error);
+});
+
+// Function to display PDF files data in a table
+function displayPdfFiles(pdfFiles) {
+    const table = document.createElement('table');
+    const headerRow = document.createElement('tr');
+
+    // Add table headers
+    ['ID', 'Filename', 'Modified Date'].forEach(headerText => {
+        const th = document.createElement('th');
+        th.textContent = headerText;
+        headerRow.appendChild(th);
+    });
+    table.appendChild(headerRow);
+
+    // Add table rows with PDF files data
+    pdfFiles.forEach(pdfFile => {
+        const tr = document.createElement('tr');
+
+        Object.values(pdfFile).forEach(value => {
+            const td = document.createElement('td');
+            td.textContent = value;
+            tr.appendChild(td);
+        });
+
+        table.appendChild(tr);
+    });
+
+    document.body.appendChild(table);
+}
