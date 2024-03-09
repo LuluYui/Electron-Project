@@ -15,7 +15,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5433:5433"
+      - "5432:5432"
  
   nginx:
     image: nginx  
@@ -28,12 +28,13 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d/
       - /www/data:/www/data/
 
+
   web:
     container_name: flask_backend
     build: ./backend
     ports:
       - "7999:5000"
-
+  
 volumes:
   postgres_data:
 
