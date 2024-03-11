@@ -1,13 +1,21 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
+
 const path = require('node:path')
+const fs = require('fs');
+const https = require('https');
+let mainWindow;
 
 function createWindow () {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    nodeIntegration: true,
+    contextIsolation: false,
     webPreferences: {
+      nodeIntegration: false, // Disable Node.js integration
+      contextIsolation: true, // Enable context isolation
       preload: path.join(__dirname, 'preload.js')
     }
   })
@@ -16,7 +24,7 @@ function createWindow () {
   mainWindow.loadFile('index.html')
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+   mainWindow.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
@@ -41,3 +49,58 @@ app.on('window-all-closed', function () {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+  ipcMain.handle('fetch-data', async (event) => {
+    const url = 'https://localhost:443/get_pdf'; // Replace YOUR_PORT_HERE with your actual port number
+    try {
+      return fetchPdfFilesData(url)
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw error;
+    }
+  });
+
+  // default create window 
+
+  
+  async function fetchPdfFilesData(url) {
+
+    let fetch;
+
+    try {
+      // Use dynamic import to import the ES module
+      const { default: fetchModule } = await import('node-fetch');
+      fetch = fetchModule;
+    } catch (err) {
+
+    }
+
+    try {
+        const options = {
+            hostname: 'localhost',
+            port: 443,
+            path: '/',
+            method: 'GET',
+            ca: fs.readFileSync('ca.pem'),
+        };
+        const sslConfigAgent = new https.Agent(options);
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            agent: sslConfigAgent,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+        });
+        if (!response.ok) {
+            throw new Error('Failed to fetch data');
+        }
+        const pdfFiles = await response.json();
+        // port the data to render.js for rendering
+        return pdfFiles;
+
+    } catch (error) {
+        console.error('Error fetching PDF files data:', error);
+        return [];
+    }
+}

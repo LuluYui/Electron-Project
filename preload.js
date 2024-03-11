@@ -6,13 +6,16 @@
  *
  * https://www.electronjs.org/docs/latest/tutorial/sandbox
  */
-window.addEventListener('DOMContentLoaded', () => {
-  const replaceText = (selector, text) => {
-    const element = document.getElementById(selector)
-    if (element) element.innerText = text
-  }
+const { contextBridge, ipcRenderer } = require('electron');
 
-  for (const type of ['chrome', 'node', 'electron']) {
-    replaceText(`${type}-version`, process.versions[type])
+contextBridge.exposeInMainWorld('electron', {
+  fetchData: async () => {
+    try {
+      const data = await ipcRenderer.invoke('fetch-data');
+      return data;
+    } catch (error) {
+      console.error('Error invoking remote method \'fetch-data\':', error);
+      throw error;
+    }
   }
-})
+});
