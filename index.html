@@ -3,15 +3,12 @@
   <head>
     <meta charset="UTF-8">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://localhost; script-src 'self'; style-src 'self' 'unsafe-inline'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data: blob:; connect-src 'self' http://localhost data:; script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'unsafe-inline' data:">
     <link href="./styles.css" rel="stylesheet">
     <title>Hello World!</title>
   </head>
   <body>
-    <h1>Hello World!</h1>
-    We are using Node.js <span id="node-version"></span>,
-    Chromium <span id="chrome-version"></span>,
-    and Electron <span id="electron-version"></span>.
+    <h1>PDF Viewer </h1>
 
     <div id="pdfFilesTable"></div>
     <body>
@@ -26,7 +23,7 @@
         </thead>
         <tbody id="data-table-body"></tbody>
       </table> 
-
+      <div id="pdf-viewer"></div>
     <!-- You can also require other files to run in this process -->
     <script src="./renderer.js"></script>
   </body>

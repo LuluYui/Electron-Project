@@ -26,12 +26,13 @@
  * ```
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+
+document.addEventListener('DOMContentLoaded', async () => {
     const tableBody = document.getElementById('data-table-body');
     const pdfViewer = document.getElementById('pdf-viewer');
   
     // Function to handle row selection
-    function selectRow(event) {
+    async function selectRow(event) {
       const selectedRow = event.target.parentElement;
       const rows = tableBody.getElementsByTagName('tr');
   
@@ -43,23 +44,45 @@ document.addEventListener('DOMContentLoaded', () => {
       selectedRow.classList.add('highlight');
 
       // Display PDF data
-      // const dataIndex = parseInt(selectedRow.getAttribute('data-index'));
-      // const selectedData = data[dataIndex];
-      // const pdfData = selectedData.pdf_data;
-      // pdfViewer.innerHTML = `<embed src="data:application/pdf;base64,${pdfData}" type="application/pdf" width="100%" height="600px" />`;
+      const dataIndex = parseInt(selectedRow.getAttribute('data-index'));
+      const selectedData = fetchedData[dataIndex];
+      const pdfData = selectedData.pdf;
 
-    }
-  
-    // Function to fetch data from localhost using Electron's preload script
-    async function fetchDataFromLocalhost() {
+          // Display loading spinner
+      pdfViewer.innerHTML = '<div class="loading-spinner"></div>';
+
+      // Lazy load PDF data
       try {
-        const data = await window.electron.fetchData();
-        // Clear existing table rows
-        tableBody.innerHTML = '';
-      
-        renderData(data);// Populate table with fetched data
+        const response = await fetchPdfData(pdfData); // Fetch PDF data
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        
+        // Display PDF in iframe
+        pdfViewer.innerHTML = `<iframe src="${url}" width="100%" height="600px"></iframe>`;
+      } catch (error) {
+        console.error('Error loading PDF:', error);
+        pdfViewer.innerHTML = '<div class="error-message">Error loading PDF</div>';
+      }
+      }
 
-        function renderData(data) {
+      // Function to fetch PDF data
+    async function fetchPdfData(pdfData) {
+      return await fetch(`data:application/pdf;base64,${pdfData}`);
+    }
+
+  async function fetchDataFromLocalhost() {
+    try {
+      const data = await window.electron.fetchData();
+      return data
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }
+
+
+    function renderData(data) {
+          // Clear existing table rows
+          tableBody.innerHTML = '';
           data.forEach((item, index) => {
             const row = document.createElement('tr');
             row.setAttribute('data-index', index); // Set data-index attribute to store the index of the data in the array
@@ -84,14 +107,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
           });
   }
-
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    }
+    // Function to fetch data from localhost using Electron's preload script
   
     // Call fetchDataFromLocalhost function when the window finishes loading
-    fetchDataFromLocalhost();
+    const fetchedData = await fetchDataFromLocalhost();
+    renderData(fetchedData);// Populate table with fetched data
   });
 
 // Retrieve PDF files data from Flask app
