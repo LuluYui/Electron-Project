@@ -1,0 +1,56 @@
+version: '3.5'
+
+services:
+  postgres_container:
+    container_name: postgres
+    hostname: database
+    image: postgres
+    build: ./PDF_example
+    restart: always
+    stdin_open: true
+    tty: true
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mysecretpassword}
+      POSTGRES_DB: postgres
+    volumes:
+      - ./PDF_example:/db/data/PDF_example
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+ 
+  nginx:
+    image: nginx  
+    container_name: nginx
+    hostname: ext.example.com
+    depends_on: 
+      - web
+    ports: 
+     - "443:443"
+    volumes: 
+      - ./nginx/certs:/etc/nginx/certs/
+      - ./nginx/conf.d:/etc/nginx/conf.d/
+      - /www/data:/www/data/
+
+  web:
+    container_name: flask_backend
+    build: ./backend
+    restart: always
+    depends_on:
+      - postgres_container
+    ports:
+      - "7999:5000"
+  
+  portainer:
+    image: portainer/portainer
+    ports:
+      - "9442:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    restart: always
+
+volumes:
+  data:
+  portainer_data:
+  postgres_data:
