@@ -33,11 +33,7 @@ npm start
 
 To access Portainer, click the link [Portainer](https://localhost:8001)  or go to *https://localhost:8001*
 
-If you find any trouble setting up the app during the review process, please feel free to contact Chris through *choyui.yip@connect.polyu.hk*. 
-Thank you for your patience and considerations.
-
 Note: If you're using Linux Bash for Windows, [see this guide](https://www.howtogeek.com/261575/how-to-run-graphical-linux-desktop-applications-from-windows-10s-bash-shell/) or use `node` from the command prompt.
-
 
 ## License
 [CC0 1.0 (Public Domain)](LICENSE.md)
